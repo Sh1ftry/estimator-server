@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Socket.IO chat</title>
+</head>
+
+<body>
+    <input id="room_id" autocomplete="off" />
+    <input id="id" autocomplete="off" />
+    <input id="name" autocomplete="off" />
+    <button id="start">Start</button>    
+    <button id="join">Join</button>
+    <br>
+    <br>
+    <input id="task" autocomplete="off" />
+    <button id="change">Change</button>  
+    <br>
+    <br>
+    <input id="vote" autocomplete="off" />
+    <button id="voteBtn">Vote</button>
+    <br>
+    <br>
+    <button id="leave">Leave</button>
+    <button id="finish">Finish</button>
+    
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        console.log("Hello world!");
+        var socket = io();
+
+        var room_id =  document.getElementById('room_id');
+        var id = document.getElementById('id');
+        var person_name = document.getElementById('name');
+        var task = document.getElementById('task');
+        var vote = document.getElementById('vote');
+
+        socket.on('joined', function() {
+            console.log('user joined');
+        })
+
+        socket.on('host left', function() {
+            console.log('host left');
+        })
+
+        socket.on('user left', function() {
+            console.log('user left');
+        })
+
+        socket.on('changed', function(task) {
+            console.log(`task changed to ${task}`);
+        })
+
+        socket.on('finished', function(results) {
+            console.log(`voting finished ${JSON.stringify(results)}`);
+        })
+
+        socket.on('voted', function(voted) {
+            console.log(`${voted} users voted`);
+        })
+
+        document.getElementById('start').addEventListener('click', function(e) {
+            console.log(`${id.value}, ${person_name.value}`);
+            socket.emit('start', id.value, person_name.value, function(response) {
+                console.log(response);
+            });
+        });
+
+        document.getElementById('join').addEventListener('click', function(e) {
+            console.log(`${room_id.value}, ${id.value}, ${person_name.value}`);
+            socket.emit('join', room_id.value, id.value, person_name.value, function(response) {
+                console.log(response);
+            });
+        });
+
+        document.getElementById('leave').addEventListener('click', function(e) {
+
+        });
+
+        document.getElementById('change').addEventListener('click', function(e) {
+            console.log(`${task.value}`);
+            socket.emit('change', task.value);
+        });
+
+        document.getElementById('finish').addEventListener('click', function(e) {
+            socket.emit('finish');
+        });
+
+        document.getElementById('voteBtn').addEventListener('click', function(e) {
+            console.log(`${vote.value}`);
+            socket.emit('vote', vote.value);
+        });
+
+        // form.addEventListener('submit', function (e) {
+        //     e.preventDefault();
+        //     if (input.value) {
+        //         socket.emit('chat message', input.value);
+        //         input.value = '';
+        //     }
+        // });
+    </script>
+</body>
+
+</html>
