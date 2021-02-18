@@ -55,7 +55,7 @@ io.on('connection', (socket) => {
         socket.room_id = room_id;
         rooms.set(room_id, new Room(participant));
         console.log(rooms.get(room_id));
-        callback({ room_id })
+        callback(room_id);
     });
     socket.on('join', (room_id, id, name, callback) => {
         if (rooms.has(room_id)) {
@@ -75,14 +75,17 @@ io.on('connection', (socket) => {
         }
     });
     socket.on('disconnect', () => {
+        console.log('someone disconnected');
         const room_id = socket.room_id;
         const participant = socket.participant;
-        if (rooms.get(room_id) && rooms.get(room_id).host === participant) {
+        if (rooms.get(room_id) && rooms.get(room_id).host.id === participant.id) {
+            console.log('host disconnected');
             socket.to(room_id).emit('host left');
             rooms.delete(room_id);
         } else if (rooms.get(room_id)) {
+            console.log('user disconnected');
             const room = rooms.get(room_id);
-            room.participants = room.participants.filter(p => p !== participant.id);
+            room.participants = room.participants.filter(p => p.id !== participant.id);
             socket.to(room_id).emit('user left', room.participants.length + 1);
         }
         console.log(rooms.get(room_id));
