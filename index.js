@@ -15,10 +15,11 @@ class Participant {
 }
 
 class Room {
-    constructor(host) {
+    constructor(host, estimates) {
         this.host = host;
         this.task = "";
         this.participants = [];
+        this.estimates = estimates;
     }
 
     addParticipant(participant) {
@@ -47,18 +48,19 @@ app.get('/', (req, res) => {
 
 io.on('connection', (socket) => {
     console.log('User connected');
-    socket.on('start', (id, name, callback) => {
+    socket.on('start', (id, name, estimates, callback) => {
         const participant = new Participant(id, name);
         const room_id = Math.random().toString(36).substr(2, 9);
         socket.join(room_id);
         socket.participant = participant;
         socket.room_id = room_id;
-        rooms.set(room_id, new Room(participant));
+        rooms.set(room_id, new Room(participant, estimates));
         console.log(rooms.get(room_id));
         callback(room_id);
     });
     socket.on('join', (room_id, id, name, callback) => {
         if (rooms.has(room_id)) {
+            console.log('joined');
             const participant = new Participant(id, name);
             socket.join(room_id);
             socket.participant = participant;
@@ -69,6 +71,7 @@ io.on('connection', (socket) => {
             socket.to(room_id).emit('joined', room.participants.length + 1);
             console.log(rooms.get(room_id));
             callback({
+                estimates: room.estimates,
                 task: room.task,
                 users: room.participants.length + 1,
             });
