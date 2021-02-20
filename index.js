@@ -70,7 +70,13 @@ io.on('connection', (socket) => {
             rooms.set(room_id, room);
             socket.to(room_id).emit('joined', room.participants.length + 1);
             console.log(rooms.get(room_id));
+            let voted = room.participants.filter(p => p.vote !== "").length;
+            if (room.host.vote != "") {
+                console.log(voted);
+                voted++;
+            }
             callback({
+                votes: voted,
                 estimates: room.estimates,
                 task: room.task,
                 users: room.participants.length + 1,
@@ -126,13 +132,15 @@ io.on('connection', (socket) => {
         console.log(vote);
         const room_id = socket.room_id;
         const room = rooms.get(room_id);
-        socket.participant.setVote(vote);
-        let voted = room.participants.filter(participant => participant.vote !== "").length;
-        if (room.host.vote != "") {
-            voted = voted + 1;
+        if(room) {
+            socket.participant.setVote(vote);
+            let voted = room.participants.filter(participant => participant.vote !== "").length;
+            if (room.host.vote != "") {
+                voted = voted + 1;
+            }
+            io.to(room_id).emit('voted', voted);
+            console.log(rooms.get(room_id));   
         }
-        io.to(room_id).emit('voted', voted);
-        console.log(rooms.get(room_id));
     });
 });
 
